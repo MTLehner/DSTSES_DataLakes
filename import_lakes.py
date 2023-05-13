@@ -5,6 +5,7 @@ import pandas as pd
 import datetime
 
 def import_lake_greifen(search_string=r'./data/lakegreifenctdprofiles_datalakesdownload/*.json'):
+    start_time = datetime.datetime.strptime("1970-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")
     x = []
     z = []
     z1 = []
@@ -45,6 +46,8 @@ def import_lake_greifen(search_string=r'./data/lakegreifenctdprofiles_datalakesd
         #dates_string = file.split('_')[2]
         #dates.append(datetime.datetime.strptime(dates_string,'%Y-%m-%dT%H:%M:%S.%fZ'))
     df_raw = pd.DataFrame({"x":x,"z":z,"z1":z1,"z2":z2,"z3":z3,"z4":z4,"z5":z5,"z6":z6,"z7":z7,"z8":z8,"z9":z9})
+    df_raw.sort_values(by="x", inplace=True)
+    df_raw["date"] = df_raw["x"].apply(lambda x: start_time + datetime.timedelta(seconds=(x)))
     return df_raw
 
 def import_lake_LeXplore(search_string=r'./data/léxplorectdprofiles_datalakesdownload/*.json'):
@@ -118,4 +121,37 @@ def import_lake_LeXplore(search_string=r'./data/léxplorectdprofiles_datalakesdo
     df_raw.sort_values(by="M", inplace=True)
     lowest_m = df_raw['M'].min()
     df_raw["date"] = df_raw["M"].apply(lambda x: start_time + datetime.timedelta(seconds=(x - lowest_m)))
+    return df_raw
+
+
+def import_lake_zug(search_string=r'./data/lakezugctdprofiles_datalakesdownload/*.json'):
+    start_time = "1970-01-01 00:00:00"
+    start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+    M = [] #| Time | time | seconds since 1970-01-01 00:00:00 | Time 
+    y = [] #| Water Pressure | Press | dbar | "Water pressure" is the pressure that exists in the medium  water. It includes the pressure due to overlying water, air and any other medium that may be present.  
+    x1 = [] #| Conductivity | Cond | mS/cm | Electrical conductivity (EC) estimates the amount of total dissolved salts (TDS), or the total amount of dissolved ions in the water. 
+    x2 = [] #| Chlorophyll A | Chl_A | null | 'Mass concentration' means mass per unit volume and is used in the construction mass_concentration_of_X_in_Y, where X is a material constituent of Y. A chemical or biological species denoted by X may be described by a single term such as 'nitrogen' or a phrase such as 'nox_expressed_as_nitrogen'. Chlorophylls are the green pigments found in most plants, algae and cyanobacteria; their presence is essential for photosynthesis to take place. There are several different forms of chlorophyll that occur naturally. All contain a chlorin ring (chemical formula C20H16N4) which gives the green pigment and a side chain whose structure varies. The naturally occurring forms of chlorophyll contain between 35 and 55 carbon atoms. Chlorophyll-a is the most commonly occurring form of natural chlorophyll. The chemical formula of chlorophyll-a is C55H72O5N4Mg. 
+    x3 = [] #| Turbidity | Turb | FTU | Turbidity is a dimensionless quantity which is expressed in NTU (Nephelometric Turbidity Units). Turbidity expressed in NTU is the proportion of white light scattered back to a transceiver by the particulate load in a body of water, represented on an arbitrary scale referenced against measurements made in the laboratory on aqueous suspensions of formazine beads. 
+    x4 = [] #| pH | pH |  | A figure expressing the acidity or alkalinity of a solution on a logarithmic scale on which 7 is neutral, lower values are more acid and higher values more alkaline. The pH is equal to −log10 c, where c is the hydrogen ion concentration in moles per litre. 
+    x5 = [] #| Oxygen Saturation | sat | % | Fractional saturation is the ratio of some measure of concentration to the saturated value of the same quantity. 
+    x6 = [] #| Dissolved Oxygen | DO_mg | mg/l | Dissolved oxygen refers to the level of free, non-compound oxygen present in water or other liquids. 
+    x7 = [] #| Salinity | SALIN | PSU | Salinity is the saltiness or amount of salt dissolved in a body of water, called saline water. 
+    x = [] #| Water temperature | Temp | °C | Lake water temperature is the in situ temperature of the lake water. To specify the depth at which the temperature applies use a vertical coordinate variable or scalar coordinate variable. There are standard names for lake_surface_temperature, lake_surface_skin_temperature, lake_surface_subskin_temperature and lake_surface_foundation_temperature which can be used to describe data located at the specified surfaces. 
+    files = glob.glob(search_string)
+    for file in files:
+        with open(file) as f:
+            data = json.load(f)
+            M.extend(np.array(data['M'], dtype=np.float32).tolist())
+            y.extend(np.array(data['y'], dtype=np.float32).tolist())
+            x.extend(np.array(data['x'], dtype=np.float32).tolist())
+            x1.extend(np.array(data['x1'], dtype=np.float32).tolist())
+            x2.extend(np.array(data['x2'], dtype=np.float32).tolist())
+            x3.extend(np.array(data['x3'], dtype=np.float32).tolist())
+            x4.extend(np.array(data['x4'], dtype=np.float32).tolist())
+            x5.extend(np.array(data['x5'], dtype=np.float32).tolist())
+            x6.extend(np.array(data['x6'], dtype=np.float32).tolist())
+            x7.extend(np.array(data['x7'], dtype=np.float32).tolist())
+    df_raw = pd.DataFrame({'M': M, 'y': y, 'x': x, 'x1': x1, 'x2': x2, 'x3': x3, 'x4': x4, 'x5': x5, 'x6': x6, 'x7': x7})
+    df_raw.sort_values(by="M", inplace=True)
+    df_raw["date"] = df_raw["M"].apply(lambda x: start_time + datetime.timedelta(seconds=(x)))
     return df_raw
